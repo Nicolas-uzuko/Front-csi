@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette Institutionnelle Gendarmerie Nationale - CSI Sakaraha */
+  --csi-vert-inst: #24563B;
+  --csi-vert-deep: #173D2B;
+  --csi-vert-soft: #E7EFE8;
+  --csi-vert-hover: #1f4932;
+  --csi-vert-light: #f1f6f2;
+  --csi-bg: #F5F6F2;
+  --csi-surface: #FFFFFF;
+  --csi-text-primary: #202923;
+  --csi-text-secondary: #69736B;
+  --csi-border: #DEE4DC;
+  --csi-border-subtle: #ebf0e9;
+  --csi-danger: #b91c1c;
+  --csi-danger-soft: #fee2e2;
+  --csi-warning: #d97706;
+  --csi-warning-soft: #fef3c7;
+  --csi-info: #1d4ed8;
+  --csi-info-soft: #dbeafe;
+
+  --background: var(--csi-bg);
+  --foreground: var(--csi-text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-csi-vert-inst: var(--csi-vert-inst);
+  --color-csi-vert-deep: var(--csi-vert-deep);
+  --color-csi-vert-soft: var(--csi-vert-soft);
+  --color-csi-vert-hover: var(--csi-vert-hover);
+  --color-csi-vert-light: var(--csi-vert-light);
+  --color-csi-bg: var(--csi-bg);
+  --color-csi-surface: var(--csi-surface);
+  --color-csi-text-primary: var(--csi-text-primary);
+  --color-csi-text-secondary: var(--csi-text-secondary);
+  --color-csi-border: var(--csi-border);
+  --color-csi-border-subtle: var(--csi-border-subtle);
+  --color-csi-danger: var(--csi-danger);
+  --color-csi-danger-soft: var(--csi-danger-soft);
+  --color-csi-warning: var(--csi-warning);
+  --color-csi-warning-soft: var(--csi-warning-soft);
+  --color-csi-info: var(--csi-info);
+  --color-csi-info-soft: var(--csi-info-soft);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: var(--csi-bg);
+  color: var(--csi-text-primary);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--csi-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--csi-text-secondary);
 }
