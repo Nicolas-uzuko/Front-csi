@@ -6,6 +6,7 @@ import { Topbar } from "./Topbar";
 import { NewDocumentButton } from "./NewDocumentButton";
 import { useAuth } from "@/lib/auth/context";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function AppShell({
   children,
@@ -31,8 +32,29 @@ export function AppShell({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--csi-bg)] text-xs font-semibold text-[var(--csi-vert-deep)]">
-        Chargement du système CSI Sakaraha...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--csi-bg)] p-6">
+        <div className="flex flex-col items-center gap-4 text-center animate-loading-pulse">
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Logo CSI Sakaraha"
+              width={64}
+              height={64}
+              className="object-contain w-full h-full drop-shadow-md"
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2 text-sm font-bold text-[var(--csi-vert-deep)] uppercase tracking-wider">
+              <svg className="animate-spin text-[var(--csi-vert-inst)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+              <span>Chargement de l&apos;application…</span>
+            </div>
+            <p className="text-[11px] text-[var(--csi-text-secondary)] font-medium">
+              Poste de Commandement · CSI Sakaraha
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

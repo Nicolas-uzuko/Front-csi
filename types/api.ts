@@ -200,7 +200,7 @@ export const TYPES_DOCUMENTS_CAT_A = [
   "COPIE_CORRESPONDANCE_2",
   "AVIS_MUTATION",
   "ORDRE_GENDARMERIE_NATIONALE",
-  "REGISTRE_PERMISSIONNAIRES"
+  "REGISTRE_PERMISSIONNAIRES",
 ] as const;
 
 export const TYPES_DOCUMENTS_CAT_B = [
@@ -210,8 +210,45 @@ export const TYPES_DOCUMENTS_CAT_B = [
   "ARCHIVE_PROCES_VERBAL",
   "REGISTRE_PROCES_VERBAUX",
   "CAHIER_SERVICE",
-  "BULLETIN_SERVICE"
+  "BULLETIN_SERVICE",
 ] as const;
+
+/**
+ * Source unique de vérité pour les libellés FR lisibles des types d'archives.
+ * Les clés sont les identifiants techniques envoyés au backend FastAPI.
+ * Les valeurs sont les libellés métier affichés à l'utilisateur.
+ */
+export const ARCHIVE_TYPES_LABELS: Record<string, string> = {
+  // Catégorie A — Archives non confidentielles
+  CORRESPONDANCE_ARRIVEE_3:    "Correspondances reçues et enregistrées au /3",
+  CAHIER_ENREGISTREMENT_3:     "Cahier d'enregistrement /3",
+  COPIE_CORRESPONDANCE_2:      "Copies des correspondances /2",
+  AVIS_MUTATION:               "Avis de mutation",
+  ORDRE_GENDARMERIE_NATIONALE: "Ordres de la Gendarmerie Nationale",
+  REGISTRE_PERMISSIONNAIRES:   "Registre des permissionnaires",
+  // Catégorie B — Archives confidentielles
+  CORRESPONDANCE_ARRIVEE_3S:   "Correspondances reçues et enregistrées au /3S",
+  CAHIER_ENREGISTREMENT_3S:    "Cahier d'enregistrement /3S",
+  COPIE_CORRESPONDANCE_4:      "Copies des correspondances /4",
+  ARCHIVE_PROCES_VERBAL:       "Archives des P.V.",
+  REGISTRE_PROCES_VERBAUX:     "Registre des P.V.",
+  CAHIER_SERVICE:              "Cahier de service",
+  BULLETIN_SERVICE:            "Bulletin de service",
+};
+
+/** Libellé FR lisible d'un type d'archive (retourne la clé brute si non trouvé). */
+export function archiveTypeLabel(key: string): string {
+  return ARCHIVE_TYPES_LABELS[key] ?? key;
+}
+
+export const CATEGORIES_ARCHIVE: Array<{
+  value: CategorieArchive;
+  label: string;
+  confidentialite: TypeConfidentialite;
+}> = [
+  { value: "A", label: "Catégorie A — Archives non confidentielles", confidentialite: "NON_CONFIDENTIEL" },
+  { value: "B", label: "Catégorie B — Archives confidentielles",     confidentialite: "CONFIDENTIEL" },
+];
 
 export interface DocumentArchive {
   id_document: number;

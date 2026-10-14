@@ -2,10 +2,21 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/endpoints";
 import { Badge } from "@/components/ui/Badge";
+import {
+  IconChart,
+  IconInbox,
+  IconOutbox,
+  IconClipboard,
+  IconSword,
+  IconArchive,
+  IconScale,
+  IconScroll,
+} from "@/components/ui/Icons";
 import { CourrierArrivee, CourrierDepart } from "@/types/api";
 
 interface StatsData {
@@ -77,23 +88,34 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* En-tête de bienvenue contextuelle */}
-        <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-lg p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-base font-bold text-[var(--csi-vert-deep)]">
-              Poste de Commandement — CSI Sakaraha
-            </h1>
-            <p className="text-xs text-[var(--csi-text-secondary)] mt-0.5">
-              Connecté en tant que{" "}
-              <span className="font-semibold text-[var(--csi-text-primary)]">
-                {user?.nom_utilisateur}
-              </span>{" "}
-              ({user?.role}) • Registres administratifs et opérationnels
-            </p>
+        {/* En-tête de bienvenue contextuelle avec Logo */}
+        <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+          <div className="flex items-center gap-4">
+            <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center cursor-pointer logo-spin-hover" title="CSI Sakaraha">
+              <Image
+                src="/logo.png"
+                alt="Logo CSI Sakaraha"
+                width={48}
+                height={48}
+                className="object-contain w-full h-full drop-shadow-sm"
+              />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-[var(--csi-vert-deep)]">
+                Poste de Commandement — CSI Sakaraha
+              </h1>
+              <p className="text-xs text-[var(--csi-text-secondary)] mt-0.5">
+                Connecté en tant que{" "}
+                <span className="font-semibold text-[var(--csi-text-primary)]">
+                  {user?.nom_utilisateur}
+                </span>{" "}
+                ({user?.role}) • Registres administratifs et opérationnels
+              </p>
+            </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center gap-2 self-end sm:self-center">
             <span className="text-xs font-medium text-[var(--csi-text-secondary)]">
-              Statut du système :
+              Statut :
             </span>{" "}
             <Badge variant="success">Opérationnel</Badge>
           </div>
@@ -106,35 +128,35 @@ export default function DashboardPage() {
             count={stats?.courriersArrivee}
             loading={isLoading}
             href="/courriers/arrivee"
-            icon="📥"
+            icon={<IconInbox size={16} />}
           />
           <StatCard
             label="Courriers Envoyés"
             count={stats?.courriersDepart}
             loading={isLoading}
             href="/courriers/depart"
-            icon="📤"
+            icon={<IconOutbox size={16} />}
           />
           <StatCard
             label="Services Courants"
             count={stats?.servicesCourants}
             loading={isLoading}
             href="/services-courants"
-            icon="📋"
+            icon={<IconClipboard size={16} />}
           />
           <StatCard
             label="Prises d'Arme"
             count={stats?.situations}
             loading={isLoading}
             href="/situations"
-            icon="⚔️"
+            icon={<IconSword size={16} />}
           />
           <StatCard
             label="Pièces Archivées"
             count={stats?.documents}
             loading={isLoading}
             href="/archives"
-            icon="🗄️"
+            icon={<IconArchive size={16} />}
           />
           {isAdmin && (
             <>
@@ -143,26 +165,28 @@ export default function DashboardPage() {
                 count={stats?.plaintes}
                 loading={isLoading}
                 href="/plaintes"
-                icon="⚖️"
+                icon={<IconScale size={16} />}
               />
               <StatCard
                 label="Procès-Verbaux"
                 count={stats?.procesVerbaux}
                 loading={isLoading}
                 href="/proces-verbaux"
-                icon="📜"
+                icon={<IconScroll size={16} />}
               />
             </>
           )}
         </div>
 
+
         {/* Section 2 colonnes : Derniers courriers reçus / envoyés */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Courriers reçus récents */}
-          <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-lg p-4 flex flex-col">
+          <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-4 flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--csi-border)] mb-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--csi-vert-deep)] flex items-center gap-2">
-                <span>📥</span> Derniers Courriers Arrivée
+                <span className="text-[var(--csi-text-secondary)]"><IconInbox size={14} /></span>
+                Derniers Courriers Arrivée
               </h2>
               <Link
                 href="/courriers/arrivee"
@@ -175,7 +199,7 @@ export default function DashboardPage() {
             {isLoading ? (
               <div className="space-y-2 py-4">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-10 bg-[var(--csi-bg)] animate-pulse rounded" />
+                  <div key={n} className="h-10 bg-[var(--csi-bg)] animate-pulse rounded-lg" />
                 ))}
               </div>
             ) : recentArrivees.length === 0 ? (
@@ -188,7 +212,7 @@ export default function DashboardPage() {
                   <Link
                     key={c.id_courrier}
                     href={`/courriers/arrivee?id=${c.id_courrier}`}
-                    className="py-2.5 px-2 -mx-2 flex items-center justify-between hover:bg-[var(--csi-vert-light)] rounded transition-colors group"
+                    className="py-2.5 px-2 -mx-2 flex items-center justify-between hover:bg-[var(--csi-vert-light)] rounded-lg transition-colors group"
                   >
                     <div className="min-w-0 pr-2">
                       <div className="flex items-center gap-2">
@@ -214,10 +238,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Courriers envoyés récents */}
-          <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-lg p-4 flex flex-col">
+          <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-4 flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--csi-border)] mb-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--csi-vert-deep)] flex items-center gap-2">
-                <span>📤</span> Derniers Courriers Départ
+                <span className="text-[var(--csi-text-secondary)]"><IconOutbox size={14} /></span>
+                Derniers Courriers Départ
               </h2>
               <Link
                 href="/courriers/depart"
@@ -230,7 +255,7 @@ export default function DashboardPage() {
             {isLoading ? (
               <div className="space-y-2 py-4">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-10 bg-[var(--csi-bg)] animate-pulse rounded" />
+                  <div key={n} className="h-10 bg-[var(--csi-bg)] animate-pulse rounded-lg" />
                 ))}
               </div>
             ) : recentDeparts.length === 0 ? (
@@ -243,7 +268,7 @@ export default function DashboardPage() {
                   <Link
                     key={c.id_courrier}
                     href={`/courriers/depart?id=${c.id_courrier}`}
-                    className="py-2.5 px-2 -mx-2 flex items-center justify-between hover:bg-[var(--csi-vert-light)] rounded transition-colors group"
+                    className="py-2.5 px-2 -mx-2 flex items-center justify-between hover:bg-[var(--csi-vert-light)] rounded-lg transition-colors group"
                   >
                     <div className="min-w-0 pr-2">
                       <div className="flex items-center gap-2">
@@ -270,40 +295,40 @@ export default function DashboardPage() {
         </div>
 
         {/* Raccourcis d'opérations courantes */}
-        <div className="bg-[var(--csi-vert-soft)]/50 border border-[var(--csi-border)] rounded-lg p-4">
-          <h3 className="text-xs font-bold text-[var(--csi-vert-deep)] uppercase tracking-wider mb-2">
+        <div className="bg-[var(--csi-vert-soft)]/50 border border-[var(--csi-border)] rounded-2xl p-4">
+          <h3 className="text-xs font-bold text-[var(--csi-vert-deep)] uppercase tracking-wider mb-3">
             Procédures Rapides
           </h3>
           <div className="flex flex-wrap gap-2">
             <Link
               href="/courriers/arrivee"
-              className="px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded-full text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-sm"
             >
-              📥 Enregistrer Courrier Reçu
+              <IconInbox size={13} /> Enregistrer Courrier Reçu
             </Link>
             <Link
               href="/courriers/depart"
-              className="px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded-full text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-sm"
             >
-              📤 Enregistrer Message Départ
+              <IconOutbox size={13} /> Enregistrer Message Départ
             </Link>
             <Link
               href="/services-courants"
-              className="px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded-full text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-sm"
             >
-              📋 Ordre de Service Courant
+              <IconClipboard size={13} /> Ordre de Service Courant
             </Link>
             <Link
               href="/situations"
-              className="px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded-full text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-sm"
             >
-              ⚔️ Saisir Prise d'Arme
+              <IconSword size={13} /> Saisir Prise d'Arme
             </Link>
             <Link
               href="/archives"
-              className="px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--csi-border)] hover:border-[var(--csi-vert-inst)] rounded-full text-xs font-medium text-[var(--csi-text-primary)] hover:text-[var(--csi-vert-deep)] transition-colors shadow-sm"
             >
-              🗄️ Classer un Document Numérique / Physique
+              <IconArchive size={13} /> Classer un Document
             </Link>
           </div>
         </div>
@@ -323,22 +348,24 @@ function StatCard({
   count?: number;
   loading: boolean;
   href: string;
-  icon: string;
+  icon: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-lg p-3 hover:border-[var(--csi-vert-inst)] transition-colors shadow-2xs group flex flex-col justify-between"
+      className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-4 hover:border-[var(--csi-vert-inst)] transition-colors shadow-sm group flex flex-col justify-between gap-2"
     >
-      <div className="flex items-center justify-between text-xs text-[var(--csi-text-secondary)]">
-        <span className="font-medium group-hover:text-[var(--csi-vert-deep)] truncate">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[var(--csi-text-secondary)] group-hover:text-[var(--csi-vert-deep)] truncate leading-tight">
           {label}
         </span>
-        <span className="text-sm">{icon}</span>
+        <span className="text-[var(--csi-text-secondary)] group-hover:text-[var(--csi-vert-deep)] flex-shrink-0 transition-colors">
+          {icon}
+        </span>
       </div>
-      <div className="mt-2 text-xl font-bold text-[var(--csi-vert-deep)]">
+      <div className="text-2xl font-bold text-[var(--csi-vert-deep)]">
         {loading ? (
-          <span className="inline-block w-8 h-5 bg-[var(--csi-bg)] animate-pulse rounded" />
+          <span className="inline-block w-10 h-6 bg-[var(--csi-bg)] animate-pulse rounded-lg" />
         ) : (
           count ?? 0
         )}
@@ -346,3 +373,4 @@ function StatCard({
     </Link>
   );
 }
+

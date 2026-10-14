@@ -6,14 +6,20 @@ import { Table, TableHeader, TableRow, TableHead, TableCell, TableSkeleton } fro
 import { Pagination } from "@/components/ui/Pagination";
 import { Badge } from "@/components/ui/Badge";
 import { Dialog } from "@/components/ui/Dialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { FormField, inputClass, textareaClass } from "@/components/ui/FormField";
+import { IconPencil, IconTrash, IconPlus } from "@/components/ui/Icons";
+import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api/endpoints";
+import { useAuth } from "@/lib/auth/context";
 import { ServiceCourant, ServiceCourantCreate } from "@/types/api";
 
 const LIMIT = 25;
 
 export default function ServicesCourantsPage() {
+  const { isAdmin } = useAuth();
+  const { success, error: toastError } = useToast();
   const [items, setItems] = useState<ServiceCourant[]>([]);
   const [total, setTotal] = useState(0);
   const [skip, setSkip] = useState(0);
@@ -23,6 +29,8 @@ export default function ServicesCourantsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceCourant | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<ServiceCourant | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -111,16 +119,36 @@ export default function ServicesCourantsPage() {
 
       if (selectedService) {
         await api.servicesCourants.update(selectedService.id_service, payload);
+        success("Ordre de service mis à jour", `Le service #${selectedService.id_service} a été actualisé.`);
       } else {
         await api.servicesCourants.create(payload);
+        success("Service consigné", "Le départ de service a été enregistré avec succès.");
       }
 
       setIsModalOpen(false);
       loadData(skip);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
+      setFormError(msg);
+      toastError("Erreur d'enregistrement", msg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!serviceToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.servicesCourants.delete(serviceToDelete.id_service);
+      success("Service supprimé", `L'ordre de service #${serviceToDelete.id_service} a été supprimé.`);
+      setServiceToDelete(null);
+      loadData(skip);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de la suppression";
+      toastError("Échec de la suppression", msg);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -180,6 +208,7 @@ export default function ServicesCourantsPage() {
                   <TableHead>Mission / Destination</TableHead>
                   <TableHead>Moyen</TableHead>
                   <TableHead className="w-36">Départ / Retour</TableHead>
+                  <TableHead className="w-20 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <tbody>
@@ -211,6 +240,26 @@ export default function ServicesCourantsPage() {
                       <div>D: {item.date_depart ? new Date(item.date_depart).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "-"}</div>
                       <div className="text-[10px] text-[var(--csi-text-secondary)]">
                         R: {item.date_retour ? new Date(item.date_retour).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "En cours"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleRowClick(item)}
+                          className="p-1.5 text-[var(--csi-text-secondary)] hover:text-[var(--csi-vert-deep)] hover:bg-[var(--csi-vert-soft)] rounded-full transition-colors"
+                          title="Modifier"
+                        >
+                          <IconPencil size={13} />
+                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => setServiceToDelete(item)}
+                            className="p-1.5 text-[var(--csi-text-secondary)] hover:text-[var(--csi-danger)] hover:bg-[var(--csi-danger-soft)]/50 rounded-full transition-colors"
+                            title="Supprimer"
+                          >
+                            <IconTrash size={13} />
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -361,6 +410,19 @@ export default function ServicesCourantsPage() {
             </div>
           </form>
         </Dialog>
+
+        {/* Modal Confirmation de suppression */}
+        <ConfirmDialog
+          isOpen={!!serviceToDelete}
+          onClose={() => setServiceToDelete(null)}
+          onConfirm={handleDeleteConfirm}
+          title="Suppression d'un ordre de service"
+          description={`Êtes-vous certain de vouloir supprimer l'ordre de service #${serviceToDelete?.id_service} (${serviceToDelete?.numero_ordre || "Sans numéro"}) ? Cette action est irréversible.`}
+          confirmLabel="Supprimer définitivement"
+          cancelLabel="Annuler"
+          variant="danger"
+          isLoading={isDeleting}
+        />
       </div>
     </AppShell>
   );

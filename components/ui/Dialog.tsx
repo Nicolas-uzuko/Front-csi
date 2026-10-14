@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { IconX } from "@/components/ui/Icons";
 
 interface DialogProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ export function Dialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/45 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
@@ -57,12 +58,12 @@ export function Dialog({
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col bg-[var(--csi-surface)] rounded-lg shadow-xl border border-[var(--csi-border)] overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col bg-[var(--csi-surface)] rounded-2xl shadow-2xl border border-[var(--csi-border)] overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--csi-border)] flex items-center justify-between bg-[var(--csi-vert-light)]/40">
+        <div className="px-6 py-4 border-b border-[var(--csi-border)] flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-base font-semibold text-[var(--csi-vert-deep)]">
+            <h3 className="text-sm font-semibold text-[var(--csi-vert-deep)]">
               {title}
             </h3>
             {description && (
@@ -73,10 +74,10 @@ export function Dialog({
           </div>
           <button
             onClick={onClose}
-            className="text-[var(--csi-text-secondary)] hover:text-[var(--csi-text-primary)] p-1 rounded hover:bg-[var(--csi-border)]/40 text-lg leading-none"
+            className="flex-shrink-0 text-[var(--csi-text-secondary)] hover:text-[var(--csi-text-primary)] p-1.5 rounded-full hover:bg-[var(--csi-bg)] transition-colors"
             aria-label="Fermer"
           >
-            ✕
+            <IconX size={16} />
           </button>
         </div>
 

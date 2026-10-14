@@ -6,14 +6,20 @@ import { Table, TableHeader, TableRow, TableHead, TableCell, TableSkeleton } fro
 import { Pagination } from "@/components/ui/Pagination";
 import { Badge } from "@/components/ui/Badge";
 import { Dialog } from "@/components/ui/Dialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { FormField, inputClass, selectClass, textareaClass } from "@/components/ui/FormField";
+import { IconTrash, IconPlus } from "@/components/ui/Icons";
+import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api/endpoints";
+import { useAuth } from "@/lib/auth/context";
 import { CourrierArrivee, CourrierArriveeCreate } from "@/types/api";
 
 const LIMIT = 25;
 
 export default function CourriersArriveePage() {
+  const { isAdmin } = useAuth();
+  const { success, error: toastError } = useToast();
   const [items, setItems] = useState<CourrierArrivee[]>([]);
   const [total, setTotal] = useState(0);
   const [skip, setSkip] = useState(0);
@@ -25,6 +31,8 @@ export default function CourriersArriveePage() {
   // Modal Création / Édition
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourrier, setSelectedCourrier] = useState<CourrierArrivee | null>(null);
+  const [courrierToDelete, setCourrierToDelete] = useState<CourrierArrivee | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -68,19 +76,21 @@ export default function CourriersArriveePage() {
 
   const handleOpenCreate = () => {
     setSelectedCourrier(null);
+    const now = new Date();
+    const currentHour = now.toTimeString().slice(0, 5); // "HH:MM"
     setFormData({
       categorie: "/3",
       categorie_archive: "A",
       fm: "",
       to: "",
       info: "",
-      heure_depart: "",
+      heure_depart: currentHour,
       priorite: "R",
       indicatif: "",
       numero_ordre: "",
       numero_piece: "",
-      date_piece: new Date().toISOString().split("T")[0],
-      date_reception: new Date().toISOString().split("T")[0],
+      date_piece: now.toISOString().split("T")[0],
+      date_reception: now.toISOString().split("T")[0],
       origine_piece: "",
       corps_message: "",
       analyse: "",
@@ -141,16 +151,36 @@ export default function CourriersArriveePage() {
 
       if (selectedCourrier) {
         await api.courriersArrivee.update(selectedCourrier.id_courrier, payload);
+        success("Courrier mis à jour", `Le courrier arrivée #${selectedCourrier.id_courrier} a été actualisé.`);
       } else {
         await api.courriersArrivee.create(payload);
+        success("Courrier enregistré", "Le courrier arrivée a été ajouté au registre avec succès.");
       }
 
       setIsModalOpen(false);
       loadData(skip, categoryFilter);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
+      setFormError(msg);
+      toastError("Erreur d'enregistrement", msg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!courrierToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.courriersArrivee.delete(courrierToDelete.id_courrier);
+      success("Courrier supprimé", `Le courrier #${courrierToDelete.id_courrier} a été supprimé.`);
+      setCourrierToDelete(null);
+      loadData(skip, categoryFilter);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de la suppression";
+      toastError("Échec de la suppression", msg);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -236,6 +266,7 @@ export default function CourriersArriveePage() {
                   <TableHead>Origine / Émetteur (FM)</TableHead>
                   <TableHead>Objet & Analyse / Message Radio</TableHead>
                   <TableHead className="w-20 text-center">Archive</TableHead>
+                  <TableHead className="w-16 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <tbody>
@@ -283,6 +314,17 @@ export default function CourriersArriveePage() {
                       <Badge variant={item.categorie_archive === "B" ? "warning" : "neutral"}>
                         Cat. {item.categorie_archive}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setCourrierToDelete(item)}
+                          className="p-1.5 text-[var(--csi-text-secondary)] hover:text-[var(--csi-danger)] hover:bg-[var(--csi-danger-soft)]/50 rounded-full transition-colors"
+                          title="Supprimer ce courrier"
+                        >
+                          <IconTrash size={13} />
+                        </button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -350,14 +392,26 @@ export default function CourriersArriveePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <FormField label="Heure Départ (HD)" optional id="heure_depart">
-                  <input
-                    id="heure_depart"
-                    type="text"
-                    placeholder="Ex: 0830"
-                    value={formData.heure_depart || ""}
-                    onChange={(e) => setFormData({ ...formData, heure_depart: e.target.value })}
-                    className={inputClass}
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      id="heure_depart"
+                      type="time"
+                      value={formData.heure_depart || ""}
+                      onChange={(e) => setFormData({ ...formData, heure_depart: e.target.value })}
+                      className={inputClass}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nowTime = new Date().toTimeString().slice(0, 5);
+                        setFormData({ ...formData, heure_depart: nowTime });
+                      }}
+                      className="px-2.5 py-2 text-[11px] bg-[var(--csi-bg)] border border-[var(--csi-border)] rounded-md hover:bg-[var(--csi-vert-soft)] text-[var(--csi-vert-deep)] whitespace-nowrap font-medium transition-colors"
+                      title="Régler sur l'heure actuelle"
+                    >
+                      Actuelle
+                    </button>
+                  </div>
                 </FormField>
 
                 <FormField label="Priorité" optional id="priorite">
@@ -533,6 +587,19 @@ export default function CourriersArriveePage() {
             </div>
           </form>
         </Dialog>
+
+        {/* Modal Confirmation de suppression */}
+        <ConfirmDialog
+          isOpen={!!courrierToDelete}
+          onClose={() => setCourrierToDelete(null)}
+          onConfirm={handleDeleteConfirm}
+          title="Suppression d'un courrier arrivée"
+          description={`Êtes-vous certain de vouloir supprimer le courrier arrivée #${courrierToDelete?.id_courrier} (${courrierToDelete?.numero_ordre || "Sans numéro d'ordre"}) ? Cette action est irréversible.`}
+          confirmLabel="Supprimer définitivement"
+          cancelLabel="Annuler"
+          variant="danger"
+          isLoading={isDeleting}
+        />
       </div>
     </AppShell>
   );
