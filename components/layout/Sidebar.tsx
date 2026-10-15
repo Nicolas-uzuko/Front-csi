@@ -27,6 +27,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Tableau de bord",   href: "/dashboard",         icon: <IconChart size={16} /> },
+  { label: "Statistiques",      href: "/statistiques",      icon: <IconChart size={16} /> },
   { label: "Courriers reçus",   href: "/courriers/arrivee", icon: <IconInbox size={16} /> },
   { label: "Courriers envoyés", href: "/courriers/depart",  icon: <IconOutbox size={16} /> },
   { label: "Service courant",   href: "/services-courants", icon: <IconClipboard size={16} /> },
