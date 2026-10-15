@@ -69,6 +69,11 @@ export interface JWTPayload {
   exp: number;
   type: string;
   role?: RoleUtilisateur;
+  email?: string;
+  nom_utilisateur?: string;
+  nom?: string;
+  prenom?: string;
+  matricule?: string;
 }
 
 /* ----------------- COURRIERS ARRIVÉE (/3, /3S) ----------------- */

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
+import NetflixLogoIntro from "@/components/auth/NetflixLogoIntro";
 
 /* ─── Icône utilisateur ─── */
 function IconUser({ size = 18 }: { size?: number }) {
@@ -40,6 +41,7 @@ function IconAlertCircleSmall({ size = 16 }: { size?: number }) {
 }
 
 export default function LoginPage() {
+  const [showIntro, setShowIntro] = useState(true);
   const [identifiant, setIdentifiant] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -71,8 +73,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--csi-bg)] flex items-center justify-center p-4 login-perspective overflow-hidden">
-      <div className="w-full max-w-5xl bg-[var(--csi-surface)] rounded-3xl shadow-xl overflow-hidden flex min-h-[560px] animate-login-card">
+    <>
+      {showIntro && <NetflixLogoIntro onComplete={() => setShowIntro(false)} />}
+
+      <div className="min-h-screen bg-[var(--csi-bg)] flex items-center justify-center p-4 login-perspective overflow-hidden">
+        <div className="w-full max-w-5xl bg-[var(--csi-surface)] rounded-3xl shadow-xl overflow-hidden flex min-h-[560px] animate-login-card">
 
         {/* ── Colonne gauche : Formulaire ── */}
         <div className="flex-1 flex flex-col justify-center px-10 py-12 lg:px-14 animate-login-left">
@@ -273,6 +278,7 @@ export default function LoginPage() {
 
       </div>
     </div>
+    </>
   );
 }
 

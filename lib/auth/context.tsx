@@ -9,7 +9,9 @@ export interface UserSession {
   id: number;
   role: RoleUtilisateur;
   nom_utilisateur?: string;
+  email?: string;
   nom?: string;
+  prenom?: string;
   matricule?: string;
 }
 
@@ -55,6 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let sessionData: UserSession = {
           id: parseInt(payload.sub, 10),
           role: payload.role || "UTILISATEUR",
+          email: payload.email,
+          nom_utilisateur: payload.nom_utilisateur,
+          nom: payload.nom,
+          prenom: payload.prenom,
+          matricule: payload.matricule,
         };
         if (storedUser) {
           try {
@@ -80,7 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const sessionData: UserSession = {
       id: payload ? parseInt(payload.sub, 10) : 1,
       role: payload?.role || "UTILISATEUR",
-      nom_utilisateur: identifiant,
+      nom_utilisateur: payload?.nom_utilisateur || identifiant,
+      email: payload?.email || (identifiant.includes("@") ? identifiant : undefined),
+      nom: payload?.nom,
+      prenom: payload?.prenom,
+      matricule: payload?.matricule,
     };
 
     setUser(sessionData);

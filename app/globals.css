@@ -54,6 +54,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Curseur en main sur tous les boutons et éléments cliquables */
+button:not(:disabled),
+a,
+select:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
+
 /* Custom minimal scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -171,4 +190,76 @@ body {
 
 .animate-loading-pulse {
   animation: loadingPulse 2s ease-in-out infinite;
+}
+
+/* ── Animation Cinématique Netflix (Logo CSI Sakaraha) ── */
+@keyframes netflixLightBeam {
+  0% {
+    transform: translateY(-100%) scaleY(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(100%) scaleY(1.4);
+    opacity: 0;
+  }
+}
+
+.netflix-light-beam {
+  animation: netflixLightBeam 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes netflixRipple {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+.animate-netflix-ripple {
+  animation: netflixRipple 1.4s cubic-bezier(0, 0.2, 0.8, 1) forwards;
+}
+
+.animate-netflix-ripple-delayed {
+  animation: netflixRipple 1.4s cubic-bezier(0, 0.2, 0.8, 1) 0.25s forwards;
+}
+
+@keyframes netflixShineGlare {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(200%) skewX(-25deg);
+    opacity: 0;
+  }
+}
+
+.netflix-shine-glare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent 100%
+  );
+  animation: netflixShineGlare 1.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
 }

@@ -377,9 +377,12 @@ export default function CourriersDepartPage() {
               </FormField>
             </div>
 
-            <div className="border border-[var(--csi-border-subtle)] rounded p-3 space-y-3">
-              <div className="font-semibold text-[11px] text-[var(--csi-vert-deep)] uppercase tracking-wider">
-                Acheminement & En-tête Radio
+            <div className="border border-[var(--csi-border-subtle)] bg-[var(--csi-vert-light)]/30 rounded-2xl p-4 space-y-3.5 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--csi-vert-inst)]" />
+                <span className="font-bold text-[11px] text-[var(--csi-vert-deep)] uppercase tracking-wider">
+                  Acheminement &amp; En-tête Radio
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -398,7 +401,7 @@ export default function CourriersDepartPage() {
                         const nowTime = new Date().toTimeString().slice(0, 5);
                         setFormData({ ...formData, heure_depart: nowTime });
                       }}
-                      className="px-2.5 py-2 text-[11px] bg-[var(--csi-bg)] border border-[var(--csi-border)] rounded-md hover:bg-[var(--csi-vert-soft)] text-[var(--csi-vert-deep)] whitespace-nowrap font-medium transition-colors"
+                      className="px-3 py-2.5 text-xs bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-xl hover:bg-[var(--csi-vert-soft)] text-[var(--csi-vert-deep)] whitespace-nowrap font-medium transition-all shadow-2xs active:scale-95"
                       title="Régler sur l'heure actuelle"
                     >
                       Actuelle
@@ -542,20 +545,32 @@ export default function CourriersDepartPage() {
               </FormField>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-[var(--csi-border)]">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--csi-border-subtle)] mt-2">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-3 py-2 border border-[var(--csi-border)] rounded text-xs font-medium hover:bg-[var(--csi-bg)]"
+                className="px-4 py-2.5 border border-[var(--csi-border)] rounded-xl text-xs font-semibold text-[var(--csi-text-secondary)] hover:text-[var(--csi-text-primary)] hover:bg-[var(--csi-bg)] transition-all active:scale-95"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-[var(--csi-vert-inst)] hover:bg-[var(--csi-vert-hover)] disabled:opacity-50 text-white rounded text-xs font-medium shadow-2xs"
+                className="px-6 py-2.5 bg-[var(--csi-vert-inst)] hover:bg-[var(--csi-vert-hover)] disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow transition-all duration-150 flex items-center gap-2 active:scale-95"
               >
-                {isSubmitting ? "Enregistrement..." : selectedCourrier ? "Mettre à jour" : "Consigner le départ"}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    <span>Enregistrement…</span>
+                  </>
+                ) : (
+                  <>
+                    <IconPlus size={14} />
+                    <span>{selectedCourrier ? "Mettre à jour" : "Consigner le départ"}</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

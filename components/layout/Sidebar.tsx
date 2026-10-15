@@ -128,14 +128,17 @@ export function Sidebar({
 
         {/* Bas de sidebar : Profil connecté */}
         <div className="p-3 border-t border-[var(--csi-border)] flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[var(--csi-vert-inst)]/15 text-[var(--csi-vert-deep)] flex items-center justify-center text-xs font-bold flex-shrink-0">
-            {user?.nom_utilisateur?.charAt(0).toUpperCase() || "U"}
+          <div
+            className="w-8 h-8 rounded-full bg-[var(--csi-vert-inst)] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-2xs select-none"
+            title={user?.email || user?.nom_utilisateur || "Profil"}
+          >
+            {(user?.email || user?.nom_utilisateur || "U").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-[var(--csi-text-primary)] truncate">
-              {user?.nom_utilisateur || "Utilisateur"}
+              {user?.email || user?.nom_utilisateur || "Utilisateur"}
             </p>
-            <p className="text-[10px] text-[var(--csi-text-secondary)] uppercase tracking-wider font-medium">
+            <p className="text-[10px] text-[var(--csi-text-secondary)] uppercase tracking-wider font-medium truncate">
               {user?.role || "UTILISATEUR"}
             </p>
           </div>

@@ -67,14 +67,22 @@ export function Topbar({
       </div>
 
       {/* Actions utilisateur */}
-      <div className="flex items-center gap-2">
-        <div className="hidden sm:flex flex-col items-end text-right">
-          <span className="text-xs font-semibold text-[var(--csi-text-primary)] leading-none">
-            {user?.nom_utilisateur || "Session"}
-          </span>
-          <span className="text-[10px] text-[var(--csi-text-secondary)] leading-tight mt-0.5">
-            Poste Sakaraha
-          </span>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-full bg-[var(--csi-vert-inst)] text-white flex items-center justify-center text-xs font-bold shadow-2xs select-none"
+            title={user?.email || user?.nom_utilisateur || "Profil utilisateur"}
+          >
+            {(user?.email || user?.nom_utilisateur || "U").charAt(0).toUpperCase()}
+          </div>
+          <div className="hidden sm:flex flex-col text-left">
+            <span className="text-xs font-semibold text-[var(--csi-text-primary)] leading-tight truncate max-w-[150px]">
+              {user?.email || user?.nom_utilisateur || "Session"}
+            </span>
+            <span className="text-[10px] text-[var(--csi-text-secondary)] uppercase tracking-wider font-medium leading-none mt-0.5">
+              {user?.role || "UTILISATEUR"}
+            </span>
+          </div>
         </div>
 
         <button

@@ -58,23 +58,26 @@ export function Dialog({
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col bg-[var(--csi-surface)] rounded-2xl shadow-2xl border border-[var(--csi-border)] overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} max-h-[92vh] flex flex-col bg-[var(--csi-surface)] rounded-2xl shadow-2xl border border-[var(--csi-border)] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--csi-border)] flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--csi-vert-deep)]">
-              {title}
-            </h3>
-            {description && (
-              <p className="text-xs text-[var(--csi-text-secondary)] mt-0.5">
-                {description}
-              </p>
-            )}
+        <div className="px-6 py-4 border-b border-[var(--csi-border-subtle)] bg-[var(--csi-vert-light)]/40 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-1.5 h-6 rounded-full bg-[var(--csi-vert-inst)] mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-bold text-[var(--csi-vert-deep)] uppercase tracking-wide">
+                {title}
+              </h3>
+              {description && (
+                <p className="text-xs text-[var(--csi-text-secondary)] mt-0.5 leading-snug">
+                  {description}
+                </p>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="flex-shrink-0 text-[var(--csi-text-secondary)] hover:text-[var(--csi-text-primary)] p-1.5 rounded-full hover:bg-[var(--csi-bg)] transition-colors"
+            className="flex-shrink-0 text-[var(--csi-text-secondary)] hover:text-[var(--csi-vert-deep)] p-1.5 rounded-full hover:bg-[var(--csi-surface)] border border-transparent hover:border-[var(--csi-border)] transition-all"
             aria-label="Fermer"
           >
             <IconX size={16} />
