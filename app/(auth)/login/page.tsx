@@ -44,6 +44,7 @@ export default function LoginPage() {
   const [showIntro, setShowIntro] = useState(true);
   const [identifiant, setIdentifiant] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
@@ -164,15 +165,39 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   id="mot_de_passe"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   value={motDePasse}
                   onChange={(e) => setMotDePasse(e.target.value)}
                   placeholder="••••••••"
                   required
                   disabled={isSubmitting}
-                  className="w-full pl-4 pr-11 py-3 text-sm rounded-xl border border-[var(--csi-border)] bg-[var(--csi-vert-light)] text-[var(--csi-text-primary)] placeholder:text-[var(--csi-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--csi-vert-inst)]/30 focus:border-[var(--csi-vert-inst)] transition-all disabled:opacity-60"
+                  className="w-full pl-4 pr-20 py-3 text-sm rounded-xl border border-[var(--csi-border)] bg-[var(--csi-vert-light)] text-[var(--csi-text-primary)] placeholder:text-[var(--csi-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--csi-vert-inst)]/30 focus:border-[var(--csi-vert-inst)] transition-all disabled:opacity-60"
                 />
+                {/* Bouton toggle affichage mot de passe */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  disabled={isSubmitting}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  className="absolute right-9 top-1/2 -translate-y-1/2 text-[var(--csi-text-secondary)] hover:text-[var(--csi-vert-inst)] transition-colors disabled:opacity-40"
+                >
+                  {showPassword ? (
+                    /* Œil barré (masquer) */
+                    <svg xmlns="http://www.w3.org/2000/svg" width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    /* Œil ouvert (afficher) */
+                    <svg xmlns="http://www.w3.org/2000/svg" width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+                {/* Icône cadenas */}
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--csi-text-secondary)] pointer-events-none">
                   <IconLockField size={17} />
                 </span>
