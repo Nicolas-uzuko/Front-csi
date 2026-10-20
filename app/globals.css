@@ -263,3 +263,49 @@ select:disabled {
   );
   animation: netflixShineGlare 1.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
 }
+
+/* ─── Styles d'impression officielle (@media print) ─── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 11pt !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Masquer toute la structure applicative web */
+  aside,
+  header,
+  nav,
+  [class*="print:hidden"],
+  [data-print-hide="true"] {
+    display: none !important;
+  }
+
+  /* Forcer le conteneur principal à s'étendre naturellement */
+  div.flex.h-screen,
+  div.flex-1.flex.flex-col,
+  main {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Éviter les coupures de page mal placées */
+  table, tr, td, th {
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break {
+    page-break-before: always !important;
+  }
+}
+
