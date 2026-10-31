@@ -38,6 +38,7 @@ export default function UtilisateursPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [adminExists, setAdminExists] = useState(false);
 
   const [formData, setFormData] = useState<UtilisateurCreate>({
     nom: "",
@@ -82,7 +83,7 @@ export default function UtilisateursPage() {
 
 
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = async () => {
     setFormData({
       nom: "",
       prenom: "",
@@ -94,6 +95,17 @@ export default function UtilisateursPage() {
       role: "UTILISATEUR",
     });
     setFormError(null);
+
+    // Vérifier si un admin existe déjà
+    try {
+      const res = await api.utilisateurs.checkAdminExists();
+      setAdminExists(res.admin_exists);
+    } catch {
+      // Fallback : vérifier sur les éléments déjà chargés
+      const existsInLoaded = items.some((u) => u.role === "ADMIN");
+      setAdminExists(existsInLoaded);
+    }
+
     setIsCreateModalOpen(true);
   };
 
@@ -458,7 +470,11 @@ export default function UtilisateursPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField label="Rôle Attribué" id="role_u">
+              <FormField
+                label="Rôle Attribué"
+                id="role_u"
+                hint={adminExists ? "Un administrateur est déjà enregistré. Seul le rôle Utilisateur est disponible." : undefined}
+              >
                 <select
                   id="role_u"
                   value={formData.role}
@@ -467,7 +483,9 @@ export default function UtilisateursPage() {
                   required
                 >
                   <option value="UTILISATEUR">UTILISATEUR (Registres courants)</option>
-                  <option value="ADMIN">ADMIN (Accès total & sensible)</option>
+                  {!adminExists && (
+                    <option value="ADMIN">ADMIN (Accès total & sensible)</option>
+                  )}
                 </select>
               </FormField>
 

@@ -258,6 +258,8 @@ export const api = {
 
   // Utilisateurs
   utilisateurs: {
+    checkAdminExists: () =>
+      apiClient<{ admin_exists: boolean }>("/utilisateurs/admin-exists"),
     list: (skip = 0, limit = 50) =>
       apiClient<PaginatedResponse<Utilisateur>>(`/utilisateurs?skip=${skip}&limit=${limit}`),
     get: (id: number) => apiClient<Utilisateur>(`/utilisateurs/${id}`),
