@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import { PrintableStatisticsReport } from "@/components/reports/PrintableStatisticsReport";
 import Image from "next/image";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/lib/auth/context";
@@ -65,11 +66,21 @@ export default function StatistiquesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [period, setPeriod] = useState<PeriodFilter>("all");
-  const [currentDate, setCurrentDate] = useState<string>("");
-
-  useEffect(() => {
-    setCurrentDate(new Date().toLocaleDateString("fr-FR"));
-  }, []);
+  const [currentDate] = useState<string>(() =>
+    typeof window !== "undefined" ? new Date().toLocaleDateString("fr-FR") : ""
+  );
+  const [reportDate] = useState<string>(() =>
+    typeof window !== "undefined"
+      ? new Date().toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : ""
+  );
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [pdfSuccessMessage, setPdfSuccessMessage] = useState<string | null>(null);
+  const [pdfErrorMessage, setPdfErrorMessage] = useState<string | null>(null);
 
   // Sélecteur de données : quels modules afficher
   const [selectedMetrics, setSelectedMetrics] = useState<Record<string, boolean>>({
@@ -151,9 +162,71 @@ export default function StatistiquesPage() {
   };
 
   useEffect(() => {
+    let ignore = false;
+
     if (!authLoading && isAuthenticated) {
-      loadStats();
+      const fetchStats = async () => {
+        setIsLoading(true);
+        try {
+          const [arrRes, depRes, servRes, sitRes, docRes, docCatARes, docCatBRes, arrCat3Res, arrCat3SRes] =
+            await Promise.all([
+              api.courriersArrivee.list(0, 1),
+              api.courriersDepart.list(0, 1),
+              api.servicesCourants.list(0, 1),
+              api.situations.list(0, 1),
+              api.documents.list(0, 1),
+              api.documents.list(0, 1, "A"),
+              api.documents.list(0, 1, "B"),
+              api.courriersArrivee.list(0, 1, "/3"),
+              api.courriersArrivee.list(0, 1, "/3S"),
+            ]);
+
+          let plaintesTotal = 0;
+          let pvTotal = 0;
+
+          if (isAdmin) {
+            try {
+              const [plRes, pvRes] = await Promise.all([
+                api.plaintes.list(0, 1),
+                api.procesVerbaux.list(0, 1),
+              ]);
+              plaintesTotal = plRes.total;
+              pvTotal = pvRes.total;
+            } catch {
+              // Si pas les droits
+            }
+          }
+
+          if (!ignore) {
+            setCounts({
+              courriersArrivee: arrRes.total,
+              courriersDepart: depRes.total,
+              servicesCourants: servRes.total,
+              situations: sitRes.total,
+              archives: docRes.total,
+              archivesCatA: docCatARes.total,
+              archivesCatB: docCatBRes.total,
+              courriersCat3: arrCat3Res.total,
+              courriersCat3S: arrCat3SRes.total,
+              plaintes: plaintesTotal,
+              procesVerbaux: pvTotal,
+            });
+          }
+        } catch (err: unknown) {
+          console.error("Erreur de récupération des statistiques :", err);
+        } finally {
+          if (!ignore) {
+            setIsLoading(false);
+          }
+        }
+      };
+
+      fetchStats();
     }
+
+    return () => {
+      ignore = true;
+    };
   }, [authLoading, isAuthenticated, isAdmin]);
 
   // Définition des modules de métriques disponibles avec icônes noir et blanc
@@ -305,50 +378,170 @@ export default function StatistiquesPage() {
     document.body.removeChild(link);
   };
 
-  // ─── IMPRESSION / EXPORT PDF DU RAPPORT OFFICIEL ───
-  const handlePrintPDF = () => {
-    window.print();
+  // ─── TÉLÉCHARGEMENT DIRECT DU RAPPORT PDF OFFICIEL ───
+  const handleExportPDF = async () => {
+    if (isExportingPDF) return;
+
+    const reportElement = document.getElementById("printable-report");
+    if (!reportElement) {
+      setPdfErrorMessage("Impossible de localiser l'élément de rapport.");
+      return;
+    }
+
+    setIsExportingPDF(true);
+    setPdfErrorMessage(null);
+    setPdfSuccessMessage(null);
+
+    // Cloner l'élément hors-écran pour que html2canvas puisse le rendre
+    // (l'original est masqué via la classe Tailwind "hidden" = display:none)
+    const clone = reportElement.cloneNode(true) as HTMLElement;
+    clone.style.cssText = [
+      "position: absolute",
+      "left: -9999px",
+      "top: 0px",
+      "width: 794px",
+      "max-width: 794px",
+      "padding: 28px 42px",
+      "background-color: #ffffff",
+      "display: block",
+      "visibility: visible",
+      "color: #000000",
+      "font-family: Arial, Helvetica, sans-serif",
+      "font-size: 10pt",
+      "z-index: -1",
+    ].join(";");
+
+    // Forcer noir sur tous les éléments enfants pour éliminer toute couleur héritée
+    clone.querySelectorAll("*").forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      const computed = window.getComputedStyle(htmlEl);
+      // Seulement réinitialiser les couleurs non-noires (bleu des liens, etc.)
+      const color = computed.color;
+      if (color && color !== "rgb(0, 0, 0)" && color !== "rgba(0, 0, 0, 1)") {
+        htmlEl.style.color = "#000000";
+      }
+      // Réinitialiser les bordures bleues
+      const borderColor = computed.borderColor;
+      if (
+        borderColor &&
+        borderColor.includes("rgb(") &&
+        !borderColor.includes("0, 0, 0") &&
+        !borderColor.includes("240") &&
+        !borderColor.includes("136")
+      ) {
+        htmlEl.style.borderColor = "#000000";
+      }
+      // Réinitialiser les fonds non-blancs non-gris
+      const bg = computed.backgroundColor;
+      if (
+        bg &&
+        bg !== "rgba(0, 0, 0, 0)" &&
+        bg !== "rgb(255, 255, 255)" &&
+        !bg.includes("rgb(240") &&
+        !bg.includes("rgb(244") &&
+        !bg.includes("rgb(239") &&
+        !bg.includes("rgb(248")
+      ) {
+        // On ne touche pas aux gris clairs déjà prévus dans le rapport
+        const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (match) {
+          const [, r, g, b] = match.map(Number);
+          // Bleu ou coloré = neutraliser
+          if (b > 100 && b > r && b > g) {
+            htmlEl.style.backgroundColor = "#ffffff";
+          }
+        }
+      }
+    });
+
+    document.body.appendChild(clone);
+
+    try {
+      const { jsPDF } = await import("jspdf");
+      const html2canvas = (await import("html2canvas")).default;
+
+      const canvas = await html2canvas(clone, {
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: 794,
+      });
+
+      document.body.removeChild(clone);
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgWidth = 210; // largeur A4 en mm
+      const pageHeight = 297; // hauteur A4 en mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Utiliser JPEG (évite les problèmes de signature PNG)
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+      // Première page
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Pages supplémentaires si nécessaire
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Nommage conforme : Rapport_Statistique_CSI_Sakaraha_JJ-MM-AAAA.pdf
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const year = now.getFullYear();
+      const fileName = `Rapport_Statistique_CSI_Sakaraha_${day}-${month}-${year}.pdf`;
+
+      pdf.save(fileName);
+
+      setPdfSuccessMessage(`✔ Rapport téléchargé : ${fileName}`);
+      setTimeout(() => {
+        setPdfSuccessMessage(null);
+      }, 6000);
+    } catch (err: unknown) {
+      // Nettoyage du clone en cas d'erreur
+      if (document.body.contains(clone)) {
+        document.body.removeChild(clone);
+      }
+      console.error("Erreur lors de la génération du PDF :", err);
+      setPdfErrorMessage(
+        err instanceof Error
+          ? `Échec de l'export PDF : ${err.message}`
+          : "Une erreur est survenue lors de la génération du PDF."
+      );
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* ── En-tête officiel imprimable uniquement (Masqué à l'écran, affiché au print) ── */}
-        <div className="hidden print:block mb-8 border-b-2 border-[#24563B] pb-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[11px] font-bold tracking-wider uppercase text-gray-800">
-                REPOBLIKAN&apos;I MADAGASIKARA
-              </p>
-              <p className="text-[10px] text-gray-600 italic">
-                Fitiavana — Tanindrazana — Fandrosoana
-              </p>
-              <div className="mt-2 text-[10px] text-gray-700 leading-tight">
-                <p className="font-semibold">MINISTÈRE DES FORCES ARMÉES</p>
-                <p>GENDARMERIE NATIONALE</p>
-                <p>COMMANDEMENT DE LA GENDARMERIE</p>
-                <p>GROUPEMENT DE SAKARAHA</p>
-                <p className="font-bold text-[#24563B]">CSI SAKARAHA</p>
-              </div>
-            </div>
-
-            <div className="text-right text-[10px] text-gray-600">
-              <p>Sakaraha{currentDate ? `, le ${currentDate}` : ""}</p>
-              <p className="mt-1">
-                Généré par : <span className="font-semibold text-gray-900">{user?.nom_utilisateur || "Agent Habilité"}</span>
-              </p>
-              <p>Rôle : {user?.role || "UTILISATEUR"}</p>
-            </div>
-          </div>
-
-          <div className="mt-5 text-center bg-[#24563B] text-white py-2.5 px-4 rounded">
-            <h1 className="text-sm font-bold uppercase tracking-wider">
-              RAPPORT STATISTIQUE OFFICIEL D&apos;ACTIVITÉ
-            </h1>
-            <p className="text-[10px] opacity-90 mt-0.5">
-              Synthèse des registres numériques certifiés — Circonscription de Sécurité Intérieure
-            </p>
-          </div>
+        {/* ── Rapport officiel imprimable (masqué à l'écran, visible seulement au print) ── */}
+        <div className="hidden print:block">
+          <PrintableStatisticsReport
+            counts={counts}
+            activeMetrics={allMetricDefinitions.map((m) => ({
+              id: m.id,
+              label: m.label,
+              value: m.value,
+              included: selectedMetrics[m.id] ?? true,
+            }))}
+            totalActif={totalActif}
+            isAdmin={isAdmin}
+            reportDate={reportDate}
+          />
         </div>
 
         {/* ── En-tête de la page à l'écran (Masqué à l'impression) ── */}
@@ -397,15 +590,44 @@ export default function StatistiquesPage() {
             </button>
 
             <button
-              onClick={handlePrintPDF}
-              disabled={isLoading || totalActif === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-black text-xs font-semibold text-white rounded-xl shadow-sm transition-all active:scale-95 hover:shadow-md"
+              onClick={handleExportPDF}
+              disabled={isLoading || totalActif === 0 || isExportingPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-black disabled:opacity-50 text-xs font-semibold text-white rounded-xl shadow-sm transition-all active:scale-95 hover:shadow-md cursor-pointer disabled:cursor-not-allowed"
             >
-              <IconPrinter size={14} className="text-white" />
-              <span>Imprimer / PDF</span>
+              {isExportingPDF ? (
+                <IconRefresh size={14} className="text-white animate-spin" />
+              ) : (
+                <IconDownload size={14} className="text-white" />
+              )}
+              <span>{isExportingPDF ? "Génération du PDF..." : "Exporter PDF"}</span>
             </button>
           </div>
         </div>
+
+        {/* Notifications d'état de l'export PDF */}
+        {pdfSuccessMessage && (
+          <div className="bg-white border border-zinc-300 text-zinc-900 text-xs px-4 py-3 rounded-xl flex items-center justify-between shadow-2xs">
+            <span className="font-medium">{pdfSuccessMessage}</span>
+            <button
+              onClick={() => setPdfSuccessMessage(null)}
+              className="text-zinc-500 hover:text-zinc-900 font-bold ml-4"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {pdfErrorMessage && (
+          <div className="bg-white border border-zinc-300 text-zinc-900 text-xs px-4 py-3 rounded-xl flex items-center justify-between shadow-2xs">
+            <span className="font-medium">{pdfErrorMessage}</span>
+            <button
+              onClick={() => setPdfErrorMessage(null)}
+              className="text-zinc-500 hover:text-zinc-900 font-bold ml-4"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* ── Zone de Contrôle & Choix d'affichage (Filtres Monochrome) ── */}
         <div className="print:hidden bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-5 space-y-4 shadow-xs">
@@ -506,7 +728,7 @@ export default function StatistiquesPage() {
         </div>
 
         {/* ── Cartes Synthèses Clés (Design monochrome moderne & icônes N&B) ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 print:grid-cols-4 print:gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 print:hidden">
           <div className="bg-[var(--csi-surface)] border border-[var(--csi-border)] rounded-2xl p-4.5 hover:shadow-xs transition-shadow print:rounded-lg print:border-gray-300">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block print:text-[10px]">
@@ -638,7 +860,7 @@ export default function StatistiquesPage() {
                         boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                         fontSize: "12px",
                       }}
-                      formatter={(val: any) => [val + " actes", "Total"]}
+                      formatter={(val) => [`${val ?? 0} actes`, "Total"]}
                     />
                     <Bar dataKey="total" radius={[8, 8, 0, 0]}>
                       {chartData.map((entry, index) => (
@@ -657,7 +879,7 @@ export default function StatistiquesPage() {
                       outerRadius={120}
                       innerRadius={55}
                       paddingAngle={3}
-                      label={({ name, percent }: any) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ""} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                       labelLine={false}
                     >
                       {pieData.map((entry, index) => (
@@ -665,7 +887,7 @@ export default function StatistiquesPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(val: any) => [val + " actes", "Volume"]}
+                      formatter={(val) => [`${val ?? 0} actes`, "Volume"]}
                       contentStyle={{
                         backgroundColor: "#ffffff",
                         borderRadius: "12px",
@@ -687,7 +909,7 @@ export default function StatistiquesPage() {
                         border: "1px solid #e5e7eb",
                         fontSize: "12px",
                       }}
-                      formatter={(val: any) => [val + " actes", "Total"]}
+                      formatter={(val) => [`${val ?? 0} actes`, "Total"]}
                     />
                     <Line
                       type="monotone"
@@ -786,62 +1008,8 @@ export default function StatistiquesPage() {
           </div>
         </div>
 
-        {/* ── Ventilation détaillée pour impression ── */}
-        <div className="hidden print:block border border-gray-300 rounded-none overflow-hidden mt-4">
-          <div className="bg-gray-100 px-4 py-2 border-b border-gray-300">
-            <h4 className="text-[11px] font-bold uppercase text-gray-800">
-              Ventilation Détaillée par Sous-Registre
-            </h4>
-          </div>
-          <table className="w-full text-left text-[10px]">
-            <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="py-1.5 px-4">Archives Catégorie A (durée de conservation ≤ 3 ans)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.archivesCatA}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 px-4">Archives Catégorie B (durée de conservation ≤ 10 ans)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.archivesCatB}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 px-4">Courriers Arrivée Ordinaires (/3)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.courriersCat3}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 px-4">Courriers Arrivée Secrets (/3S)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.courriersCat3S}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 px-4">Flux Courriers Global (Reçus + Envoyés)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.courriersArrivee + counts.courriersDepart}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 px-4">Opérations de Sécurité Intérieure (Services courants + Situations d'armes)</td>
-                <td className="py-1.5 px-4 text-right font-bold">{counts.servicesCourants + counts.situations}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
 
-        {/* ── Pied de page pour impression officielle (masqué à l'écran, affiché au print) ── */}
-        <div className="hidden print:block pt-8 text-center text-xs text-gray-600 border-t border-gray-300 mt-6">
-          <p className="font-semibold uppercase tracking-wider text-black">
-            Gendarmerie Nationale de Madagascar — Compagnie de Sakaraha
-          </p>
-          <p className="mt-1 text-[10px]">
-            Certifié exact et conforme aux registres numériques en vigueur dans le système CSI.
-          </p>
-          <div className="mt-8 flex justify-between px-10">
-            <div className="text-left">
-              <p className="font-medium underline text-[11px]">Le Gestionnaire des Registres :</p>
-              <p className="mt-12 font-bold text-gray-900">{user?.nom_utilisateur || "L'Agent Habilité"}</p>
-            </div>
-            <div className="text-right">
-              <p className="font-medium underline text-[11px]">Le Commandant de Brigade / CSI :</p>
-              <p className="mt-12 font-bold text-gray-900">Pour Ordre et Visa</p>
-            </div>
-          </div>
-        </div>
+        {/* ── Pied de page pour impression officielle (masqué à l'écran — remplacé par PrintableStatisticsReport) ── */}
       </div>
     </AppShell>
   );

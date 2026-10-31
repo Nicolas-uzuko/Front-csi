@@ -98,7 +98,7 @@ export const api = {
       }),
   },
 
-  // Services Courants
+  // Services Courants (Ordres de Mission)
   servicesCourants: {
     list: (skip = 0, limit = 50) =>
       apiClient<PaginatedResponse<ServiceCourant>>(`/services-courants?skip=${skip}&limit=${limit}`),
@@ -117,6 +117,35 @@ export const api = {
       apiClient<void>(`/services-courants/${id}`, {
         method: "DELETE",
       }),
+    // Upload d'un fichier attaché à un ordre de mission
+    uploadFichier: (id: number, file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiClient<DocumentArchive>(`/services-courants/${id}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+    },
+    // Info du fichier attaché
+    getFichierInfo: (id: number) =>
+      apiClient<DocumentArchive>(`/services-courants/${id}/fichier-info`),
+    // URL de téléchargement du fichier
+    downloadFichierBlob: async (id: number): Promise<{ blob: Blob; filename: string }> => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const token = tokenStorage.getAccess();
+      const res = await fetch(`${base}/services-courants/${id}/download`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Impossible de télécharger le fichier");
+      const disposition = res.headers.get("Content-Disposition");
+      let filename = `ordre_mission_${id}`;
+      if (disposition && disposition.includes("filename=")) {
+        const matches = disposition.match(/filename\*?=['"']?(?:UTF-8'')?([^'";\\n]+)['"']?/i);
+        if (matches && matches[1]) filename = decodeURIComponent(matches[1]);
+      }
+      const blob = await res.blob();
+      return { blob, filename };
+    },
   },
 
   // Situations Prise d'Arme

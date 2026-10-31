@@ -126,7 +126,7 @@ export interface CourrierDepart {
 export type CourrierDepartCreate = Omit<CourrierDepart, "id_courrier">;
 export type CourrierDepartUpdate = Partial<CourrierDepartCreate>;
 
-/* ----------------- SERVICES COURANTS ----------------- */
+/* ----------------- SERVICES COURANTS (ORDRES DE MISSION) ----------------- */
 
 export interface ServiceCourant {
   id_service: number;
@@ -139,6 +139,9 @@ export interface ServiceCourant {
   date_retour?: string | null;
   numero_ordre?: string | null;
   signataire?: string | null;
+  // Fichier attaché (renseigné après un upload)
+  fichier_nom?: string | null;
+  fichier_mime?: string | null;
 }
 
 export type ServiceCourantCreate = Omit<ServiceCourant, "id_service">;

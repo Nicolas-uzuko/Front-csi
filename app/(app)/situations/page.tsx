@@ -26,11 +26,11 @@ export default function SituationsPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<SituationPriseArmeCreate>({
-    effectif_realise: 0,
-    absent: 0,
-    present: 0,
-    indisponible: 0,
-    sur_le_rang: 0,
+    effectif_realise: undefined,
+    absent: undefined,
+    present: undefined,
+    indisponible: undefined,
+    sur_le_rang: undefined,
     motif_absent: "",
     motif_indisponible: "",
     date_situation: "",
@@ -51,17 +51,43 @@ export default function SituationsPage() {
   };
 
   useEffect(() => {
-    loadData(skip);
+    let ignore = false;
+
+    async function fetchSituations() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await api.situations.list(skip, LIMIT);
+        if (!ignore) {
+          setItems(res.items);
+          setTotal(res.total);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Erreur de chargement des situations");
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchSituations();
+
+    return () => {
+      ignore = true;
+    };
   }, [skip]);
 
   const handleOpenCreate = () => {
     setSelectedItem(null);
     setFormData({
-      effectif_realise: 0,
-      absent: 0,
-      present: 0,
-      indisponible: 0,
-      sur_le_rang: 0,
+      effectif_realise: undefined,
+      absent: undefined,
+      present: undefined,
+      indisponible: undefined,
+      sur_le_rang: undefined,
       motif_absent: "",
       motif_indisponible: "",
       date_situation: new Date().toISOString().slice(0, 16),
@@ -73,11 +99,11 @@ export default function SituationsPage() {
   const handleRowClick = (item: SituationPriseArme) => {
     setSelectedItem(item);
     setFormData({
-      effectif_realise: item.effectif_realise || 0,
-      absent: item.absent || 0,
-      present: item.present || 0,
-      indisponible: item.indisponible || 0,
-      sur_le_rang: item.sur_le_rang || 0,
+      effectif_realise: item.effectif_realise ?? undefined,
+      absent: item.absent ?? undefined,
+      present: item.present ?? undefined,
+      indisponible: item.indisponible ?? undefined,
+      sur_le_rang: item.sur_le_rang ?? undefined,
       motif_absent: item.motif_absent || "",
       motif_indisponible: item.motif_indisponible || "",
       date_situation: item.date_situation ? item.date_situation.slice(0, 16) : "",
@@ -124,7 +150,7 @@ export default function SituationsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--csi-surface)] p-3 border border-[var(--csi-border)] rounded-md">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-[var(--csi-vert-deep)] uppercase tracking-wider">
-              Situation de Prise d'Arme
+              Situation de Prise d&apos;Arme
             </span>
             <Badge variant="neutral">{total} états enregistrés</Badge>
           </div>
@@ -133,7 +159,7 @@ export default function SituationsPage() {
             onClick={handleOpenCreate}
             className="px-3 py-1.5 bg-[var(--csi-vert-inst)] hover:bg-[var(--csi-vert-hover)] text-white text-xs font-medium rounded transition-colors shadow-2xs flex items-center gap-1.5"
           >
-            <span>＋</span> Établir Situation d'Arme
+            <span>＋</span> Établir Situation de prise d&apos;Arme
           </button>
         </div>
 
@@ -244,8 +270,14 @@ export default function SituationsPage() {
                   id="effectif_realise"
                   type="number"
                   min="0"
-                  value={formData.effectif_realise ?? 0}
-                  onChange={(e) => setFormData({ ...formData, effectif_realise: parseInt(e.target.value, 10) || 0 })}
+                  placeholder="0"
+                  value={formData.effectif_realise ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      effectif_realise: e.target.value === "" ? undefined : parseInt(e.target.value, 10),
+                    })
+                  }
                   className={inputClass}
                 />
               </FormField>
@@ -255,8 +287,14 @@ export default function SituationsPage() {
                   id="present"
                   type="number"
                   min="0"
-                  value={formData.present ?? 0}
-                  onChange={(e) => setFormData({ ...formData, present: parseInt(e.target.value, 10) || 0 })}
+                  placeholder="0"
+                  value={formData.present ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      present: e.target.value === "" ? undefined : parseInt(e.target.value, 10),
+                    })
+                  }
                   className={inputClass}
                 />
               </FormField>
@@ -266,8 +304,14 @@ export default function SituationsPage() {
                   id="sur_le_rang"
                   type="number"
                   min="0"
-                  value={formData.sur_le_rang ?? 0}
-                  onChange={(e) => setFormData({ ...formData, sur_le_rang: parseInt(e.target.value, 10) || 0 })}
+                  placeholder="0"
+                  value={formData.sur_le_rang ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      sur_le_rang: e.target.value === "" ? undefined : parseInt(e.target.value, 10),
+                    })
+                  }
                   className={inputClass}
                 />
               </FormField>
@@ -277,8 +321,14 @@ export default function SituationsPage() {
                   id="absent"
                   type="number"
                   min="0"
-                  value={formData.absent ?? 0}
-                  onChange={(e) => setFormData({ ...formData, absent: parseInt(e.target.value, 10) || 0 })}
+                  placeholder="0"
+                  value={formData.absent ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      absent: e.target.value === "" ? undefined : parseInt(e.target.value, 10),
+                    })
+                  }
                   className={inputClass}
                 />
               </FormField>
@@ -289,8 +339,14 @@ export default function SituationsPage() {
                 id="indisponible"
                 type="number"
                 min="0"
-                value={formData.indisponible ?? 0}
-                onChange={(e) => setFormData({ ...formData, indisponible: parseInt(e.target.value, 10) || 0 })}
+                placeholder="0"
+                value={formData.indisponible ?? ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    indisponible: e.target.value === "" ? undefined : parseInt(e.target.value, 10),
+                  })
+                }
                 className={inputClass}
               />
             </FormField>

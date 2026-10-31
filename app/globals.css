@@ -273,10 +273,13 @@ select:disabled {
 
   html, body {
     background: #ffffff !important;
-    color: #111827 !important;
-    font-size: 11pt !important;
+    color: #000000 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10pt !important;
     height: auto !important;
     overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Masquer toute la structure applicative web */
@@ -300,8 +303,24 @@ select:disabled {
   }
 
   /* Éviter les coupures de page mal placées */
-  table, tr, td, th {
+  table {
     page-break-inside: avoid !important;
+    border-collapse: collapse !important;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid !important;
+  }
+
+  /* En-têtes de tableaux répétés sur chaque page */
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Assurer que les fonds et couleurs s'impriment */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-page-break {

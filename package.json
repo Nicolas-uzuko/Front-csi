@@ -11,6 +11,8 @@
   "dependencies": {
     "@tanstack/react-query": "^5.104.2",
     "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.56.0",
     "motion": "^14.2.0",
