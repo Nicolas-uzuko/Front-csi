@@ -112,7 +112,7 @@ export default function StatistiquesPage() {
   const loadStats = async () => {
     setIsLoading(true);
     try {
-      const [arrRes, depRes, servRes, sitRes, docRes, docCatARes, docCatBRes, arrCat3Res, arrCat3SRes] =
+      const [arrRes, depRes, servRes, sitRes, docRes, docCatARes, arrCat3Res, arrCat3SRes] =
         await Promise.all([
           api.courriersArrivee.list(0, 1),
           api.courriersDepart.list(0, 1),
@@ -120,20 +120,23 @@ export default function StatistiquesPage() {
           api.situations.list(0, 1),
           api.documents.list(0, 1),
           api.documents.list(0, 1, "A"),
-          api.documents.list(0, 1, "B"),
           api.courriersArrivee.list(0, 1, "/3"),
           api.courriersArrivee.list(0, 1, "/3S"),
         ]);
 
+      // Catégorie B et données sensibles : réservées à l'Admin
+      let docCatBTotal = 0;
       let plaintesTotal = 0;
       let pvTotal = 0;
 
       if (isAdmin) {
         try {
-          const [plRes, pvRes] = await Promise.all([
+          const [docCatBRes, plRes, pvRes] = await Promise.all([
+            api.documents.list(0, 1, "B"),
             api.plaintes.list(0, 1),
             api.procesVerbaux.list(0, 1),
           ]);
+          docCatBTotal = docCatBRes.total;
           plaintesTotal = plRes.total;
           pvTotal = pvRes.total;
         } catch {
@@ -148,7 +151,7 @@ export default function StatistiquesPage() {
         situations: sitRes.total,
         archives: docRes.total,
         archivesCatA: docCatARes.total,
-        archivesCatB: docCatBRes.total,
+        archivesCatB: docCatBTotal,
         courriersCat3: arrCat3Res.total,
         courriersCat3S: arrCat3SRes.total,
         plaintes: plaintesTotal,
@@ -168,7 +171,7 @@ export default function StatistiquesPage() {
       const fetchStats = async () => {
         setIsLoading(true);
         try {
-          const [arrRes, depRes, servRes, sitRes, docRes, docCatARes, docCatBRes, arrCat3Res, arrCat3SRes] =
+          const [arrRes, depRes, servRes, sitRes, docRes, docCatARes, arrCat3Res, arrCat3SRes] =
             await Promise.all([
               api.courriersArrivee.list(0, 1),
               api.courriersDepart.list(0, 1),
@@ -176,20 +179,23 @@ export default function StatistiquesPage() {
               api.situations.list(0, 1),
               api.documents.list(0, 1),
               api.documents.list(0, 1, "A"),
-              api.documents.list(0, 1, "B"),
               api.courriersArrivee.list(0, 1, "/3"),
               api.courriersArrivee.list(0, 1, "/3S"),
             ]);
 
+          // Catégorie B et données sensibles : réservées à l'Admin
+          let docCatBTotal = 0;
           let plaintesTotal = 0;
           let pvTotal = 0;
 
           if (isAdmin) {
             try {
-              const [plRes, pvRes] = await Promise.all([
+              const [docCatBRes, plRes, pvRes] = await Promise.all([
+                api.documents.list(0, 1, "B"),
                 api.plaintes.list(0, 1),
                 api.procesVerbaux.list(0, 1),
               ]);
+              docCatBTotal = docCatBRes.total;
               plaintesTotal = plRes.total;
               pvTotal = pvRes.total;
             } catch {
@@ -205,7 +211,7 @@ export default function StatistiquesPage() {
               situations: sitRes.total,
               archives: docRes.total,
               archivesCatA: docCatARes.total,
-              archivesCatB: docCatBRes.total,
+              archivesCatB: docCatBTotal,
               courriersCat3: arrCat3Res.total,
               courriersCat3S: arrCat3SRes.total,
               plaintes: plaintesTotal,
